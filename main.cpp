@@ -27,11 +27,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 static int numw=0, nclass=0;
+// FIXED: HTML template now has proper nesting (head before body)
 QString basic ="<HTML>" \
                 "<head>" \
+                "</head>" \
                 "<body>" \
                 "</body>" \
-                "</head>" \
                 "</HTML>";
 
 void set_html_title(QDomElement e, QDomDocument h)
@@ -244,8 +245,8 @@ void do_QLabel(QDomElement e,QDomElement h)
 {
     QDomDocument hd;
     hd = h.toDocument();
-    QDomElement he= hd.createElement("div");
-    he.setTagName("label");
+    // FIXED: Create <label> directly instead of creating <div> and renaming it
+    QDomElement he= hd.createElement("label");
     QDomText t= hd.createTextNode(get_widget_display_text(e));
     he.appendChild(t);
     he.setAttribute("style",get_element_style(e));
@@ -285,11 +286,15 @@ void do_QTextEdit(QDomElement e, QDomElement h)
             dc.setContent(html_str);
         }
     }
-    QDomElement be = dc.elementsByTagName("body").at(0).toElement();
-    QDomElement ndiv = hd.createElement("div");
-    QString styl = dc.elementsByTagName("body").at(0).toElement().attribute("style");
-    ndiv.appendChild(be);
-    he.appendChild(ndiv);
+    // FIXED: Only try to extract body content if html_str is not empty
+    if(!html_str.isEmpty())
+    {
+        QDomElement be = dc.elementsByTagName("body").at(0).toElement();
+        QDomElement ndiv = hd.createElement("div");
+        QString styl = dc.elementsByTagName("body").at(0).toElement().attribute("style");
+        ndiv.appendChild(be);
+        he.appendChild(ndiv);
+    }
     h.appendChild(he);
 }
 void do_QTextBrowser(QDomElement e, QDomElement h)
@@ -340,7 +345,6 @@ void do_QTableWidget(QDomElement e,QDomElement h)
     //line header
     QDomElement etr = hd.createElement("tr");
     etr.setAttribute("style","background:#CFCFCF;");
-    etr.appendChild(hd.createElement("td"));
     he.appendChild(etr);
     //column heads
     QDomNodeList lc = e.elementsByTagName("column");
@@ -360,15 +364,15 @@ void do_QTableWidget(QDomElement e,QDomElement h)
     //qDebug()<<"Number of rows = "<<lr.count();
     for(int j=0; j<lr.count(); j++)
     {
+        // FIXED: Create a new <tr> for each row (append to table, not to header row)
         QDomElement tmp_tr = hd.createElement("tr");
-        etr.appendChild(tmp_tr);
+        he.appendChild(tmp_tr);
         QDomElement tmp_td = hd.createElement("td");
         QString rc_str = get_widget_display_text(lr.at(j).toElement());
         QDomText t = hd.createTextNode(rc_str);
         tmp_td.setAttribute("style","background:#CFCFCF;");
         tmp_td.appendChild(t);
         tmp_tr.appendChild(tmp_td);
-        etr.appendChild(tmp_tr);
         // here iterate to retrive column data for each row
         // and populate it.
         for(int k=0; k<lc.count(); k++)
@@ -427,6 +431,7 @@ void do_widget_root(QDomElement e, QDomDocument htdoc)
 }
 void process_qt_ele(QDomElement e, QDomDocument htdoc, int lev)
 {
+    Q_UNUSED(lev);  // FIXED: Mark unused parameter to suppress warning
     QString eclass, ename;
     eclass = e.attribute("class");
     ename = e.attribute("name");
@@ -464,7 +469,16 @@ int main(int argc, char *argv[])
           qDebug()<<"Failed to open file\n";//
           return(-1);
       }
-      dom.setContent(&uifile);
+      // FIXED: Check if XML parsing succeeded
+      QString errorMsg;
+      int errorLine, errorCol;
+      if(!dom.setContent(&uifile, &errorMsg, &errorLine, &errorCol))
+      {
+          qDebug()<<"Failed to parse XML:"<<errorMsg;
+          qDebug()<<"at line"<<errorLine<<","<<errorCol;
+          uifile.close();
+          return(-1);
+      }
       uifile.close();
       //create output file name from input file by replacing ".ui" by ".html"
 

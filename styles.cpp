@@ -251,7 +251,8 @@ QHash<QString,QString> get_widget_minsize(QDomElement e)
             QDomElement el = l.at(i).toElement();
             if(el.tagName()=="property")
             {
-                if(el.attribute("name")=="minimunSize")
+                // FIXED: was "minimunSize" (typo)
+                if(el.attribute("name")=="minimumSize")
                 {
                     mnsz.insert("height",el.elementsByTagName("height").at(0).toElement().text());
                     mnsz.insert("width",el.elementsByTagName("width").at(0).toElement().text());
@@ -272,7 +273,13 @@ QString get_element_style(QDomElement e)
     if(has_geometry(e))
     {
         propertys.insert("position","absolute");
-        propertys.insert(get_widget_geometry(e));
+        QHash<QString,QString> geom = get_widget_geometry(e);
+        QHashIterator<QString,QString> git(geom);
+        while(git.hasNext())
+        {
+            git.next();
+            propertys.insert(git.key(), git.value());
+        }
     }
     if(has_size_policy(e))
     {
@@ -317,11 +324,14 @@ QString get_element_style(QDomElement e)
         }
     }
     // here make it to a string in css format
-    QHashIterator<QString,QString> iter(propertys);
-    while(iter.hasNext())
+    // Build CSS string with properties in a consistent order
+    // First include the ordered geometry-related keys, then any extras
+    QStringList outputKeys = propertys.keys();
+    // Sort keys for deterministic output
+    outputKeys.sort();
+    for(const QString &key : outputKeys)
     {
-        iter.next();
-        style += iter.key()+":"+iter.value()+";";
+        style += key + ":" + propertys[key] + ";";
     }
     return(style);
 }

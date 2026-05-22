@@ -1,58 +1,141 @@
 # Qt-to-HTML
-Qt designer UI file to HTML form generator.
+Convert Qt Designer `.ui` files into HTML forms — no web development skills needed!
 
-Designig HTML forms for non web developers is a PIA.
-- I used QtCreator for few of my projects and Glade too. But never Web Technology. For my other project "[Scarlet](https://github.com/dasbluehole/scarlet)" i needed some forms to test. i know how much difficult it was to make a HTML file. 
+Designing HTML forms is painful if you're not a web developer. If you already know how to make forms in **Qt Designer** or **Qt Creator**, this tool lets you reuse that work and convert it directly to HTML.
 
-- secondly Using existing tools to code for new project is always a good practice. Hence if some one is porting some Qt code to Web Technology then this may help.
+---
 
-## What it is
-This is simply a .ui xml file to HTML file converter. It reads a Qt .ui file created by Qt-Creator or Designer, then it translate the XML to corresponding HTML form elements. 
+## 📋 What It Does
 
+This is a **command-line tool** that reads a Qt `.ui` file (created by Qt Designer or Qt Creator) and generates an equivalent **HTML form** with all your form elements converted automatically.
 
-### Implemented
-Currently it can handle following Qt Widgets.
+---
 
-* __QLabel__
-* __QLineEdit__
-* __QPushButton__
-* __QCheckBox__
-* __QRadioButton__
-* __QComboBox__
-* __QPlainTextEdit__
-* __QTextEdit__
-* __QTextBrowser__
-* __QTableWidget__
-* __QDateEdit__
-* __QTimeEdit__
+## ✅ Supported Widgets
 
-And 
+| Qt Widget | Converted To |
+|-----------|-------------|
+| `QLabel` | `<label>` |
+| `QLineEdit` | `<input type="text">` |
+| `QPushButton` | `<input type="button">` (with JavaScript onclick) |
+| `QCheckBox` | `<input type="checkbox">` |
+| `QRadioButton` | `<input type="radio">` |
+| `QComboBox` | `<select>` with `<option>` items |
+| `QPlainTextEdit` | `<textarea>` |
+| `QTextEdit` / `QTextBrowser` | `<div>` with rich HTML content |
+| `QTableWidget` | `<table>` with rows and columns |
+| `QDateEdit` | `<input type="date">` |
+| `QTimeEdit` | `<input type="time">` |
 
-* __QMainWindow__
-* __QDialog__
-* __QWidget__
+**Main container support:** `QMainWindow`, `QDialog`, `QWidget`
 
-as main containers. It doesn't support layouts currently but may  support in some (unseen)future time. Implementing all the widgets may not be possible but gradually what ever widgets are possible will be implemented.
+> ⚠️ Layouts are not yet supported. Signal-slot connections generate placeholder JavaScript functions that you can edit later.
 
-Currently if there is a signal-slot connection available it generates a place holder function in **script** area of the generated HTML file.
+---
 
-For any **QPushButton**, a **on\_pushButton\_clicked()** _onclick_ arttribute is generated. 
+## 🔧 How to Download & Compile
 
-User should edit and modify the scripts as per requirement.
+### Step 1: Get Qt (if you don't have it already)
 
-## Output
-![Currently implemented Features](https://github.com/dasbluehole/Qt-to-HTML/blob/main/current%20features_qt_ui.png)
-![HTML Equivalent](https://github.com/dasbluehole/Qt-to-HTML/blob/main/currentfeatures_html.png)
-![Qt Dialog](https://github.com/dasbluehole/Qt-to-HTML/blob/main/dialod_qt_ui.png)
-![HTML equivalent](https://github.com/dasbluehole/Qt-to-HTML/blob/main/dialog_html.png)
-![Qt Widget](https://github.com/dasbluehole/Qt-to-HTML/blob/main/widget_qt_ui.png)
-![Html Equivalent](https://github.com/dasbluehole/Qt-to-HTML/blob/main/widget_html.png)
-![Qt MainWindow](https://github.com/dasbluehole/Qt-to-HTML/blob/main/mainwindow_qt_ui.png)
-![Html mainwindow](https://github.com/dasbluehole/Qt-to-HTML/blob/main/mainwindow_html.png)
+This tool is written in C++ and needs **Qt** to compile.
 
-## Example
-See the example files in example folder.
+- **Option A:** Download from [qt.io](https://www.qt.io/download-open-source) — install version 6.x
+- **Option B:** Already installed? Check by opening a terminal (PowerShell) and typing:
 
-Try out yourself with simple .ui files and enjoy.
+```powershell
+C:\Qt\6.9.1\mingw_64\bin\qmake.exe --version
+```
 
+If you see a version number, you're good to go.
 
+### Step 2: Open a terminal
+
+1. Press `Windows Key + X` and select **Terminal** or **PowerShell**
+2. Navigate to this project folder:
+
+```powershell
+cd "c:\Users\user\OneDrive\Desktop\python\Qt-to-HTML"
+```
+
+### Step 3: Generate the build files
+
+```powershell
+C:\Qt\6.9.1\mingw_64\bin\qmake.exe ui2html.pro
+```
+
+### Step 4: Compile (build the .exe)
+
+```powershell
+C:\Qt\Tools\mingw1310_64\bin\mingw32-make.exe
+```
+
+If everything works, you'll see the compiled program at:  
+📁 `release\ui2html.exe`
+
+---
+
+## ▶️ How to Use
+
+Once compiled, run it from the terminal:
+
+```powershell
+release\ui2html.exe example\test.ui
+```
+
+This reads `example\test.ui` and creates `example\test.html` in the same folder.
+
+### Try the examples
+
+The `example/` folder has sample `.ui` files to test with:
+
+```powershell
+release\ui2html.exe example\dialog.ui   # → creates example\dialog.html
+release\ui2html.exe example\test.ui     # → creates example\test.html
+```
+
+Open the generated `.html` files in any web browser to see the result!
+
+---
+
+## 🧪 Step-by-Step Example
+
+Let's say you have a file called `myform.ui` created in Qt Designer:
+
+```powershell
+# 1. Place your .ui file somewhere, e.g.:
+#    C:\Users\user\Documents\myform.ui
+
+# 2. Run the converter:
+release\ui2html.exe C:\Users\user\Documents\myform.ui
+
+# 3. Open the generated file:
+#    C:\Users\user\Documents\myform.html
+```
+
+That's it! Your Qt form is now a web page.
+
+---
+
+## 🖼️ Sample Output
+
+| Qt Designer | HTML Result |
+|-------------|-------------|
+| ![Qt UI](images/current%20features_qt_ui.png) | ![HTML](images/currentfeatures_html.png) |
+| ![Qt Dialog](images/dialod_qt_ui.png) | ![HTML Dialog](images/dialog_html.png) |
+| ![Qt Widget](images/widget_qt_ui.png) | ![HTML Widget](images/widget_html.png) |
+| ![Qt MainWindow](images/mainwindow_qt_ui.png) | ![HTML MainWindow](images/mainwindow_html.png) |
+
+---
+
+## 💡 Tips
+
+- **Buttons get JavaScript:** Any `QPushButton` automatically gets an `onclick` function. You can edit the generated HTML's `<script>` section to add your own logic.
+- **Edit the output:** The generated HTML is fully editable — open it in any text editor or IDE to customize.
+- **Qt not in PATH?** If you get `qmake not found`, use the full path as shown above, or [add Qt to your system PATH](https://doc.qt.io/qt-6/adding-exe-to-path.html).
+- **Bad .ui file?** The tool will now show a clear error message if it can't parse the XML.
+
+---
+
+## 📄 License
+
+This project is licensed under the **GNU Lesser General Public License v2.0**.
